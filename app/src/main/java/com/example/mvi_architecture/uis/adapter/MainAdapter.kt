@@ -1,43 +1,53 @@
 package com.example.mvi_architecture.uis.adapter
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.mvi_architecture.R
 import com.example.mvi_architecture.data.model.User
-import kotlinx.android.synthetic.main.user_row.view.*
+import com.example.mvi_architecture.databinding.UserRowBinding
+
+//import kotlinx.android.synthetic.main.user_row.view.*
 
 class MainAdapter(
     private val users: ArrayList<User>
-) : RecyclerView.Adapter<MainAdapter.DataViewHolder>() {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    class DataViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class DataViewHolder(
+        private val binding: UserRowBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(user: User) {
-            itemView.textViewUserName.text = user.first_name + " " + user.last_name
-            itemView.textViewUserEmail.text = user.email
-            Glide.with(itemView.imageViewAvatar.context)
+            binding.textViewUserName.text = buildString {
+                append(user.first_name)
+                append(" ")
+                append(user.last_name)
+            }
+            binding.textViewUserEmail.text = user.email
+            Glide.with(binding.imageViewAvatar.context)
                 .load(user.avatar)
-                .into(itemView.imageViewAvatar)
+                .into(binding.imageViewAvatar)
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-        DataViewHolder(
-            LayoutInflater.from(parent.context).inflate(
-                R.layout.user_row, parent,
-                false
-            )
-        )
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val binding: UserRowBinding =
+            UserRowBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return DataViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val item: User = users[position]
+        when (holder) {
+            is DataViewHolder -> holder.bind(item)
+        }
+    }
 
     override fun getItemCount(): Int = users.size
 
-    override fun onBindViewHolder(holder: DataViewHolder, position: Int) =
-        holder.bind(users[position])
-
     fun addData(list: List<User>) {
-        users.addAll(list)
+        val size = users.size
+        users.addAll(index = if (size == 0) 0 else size - 1, list)
+        notifyItemInserted(size)
     }
 
 }
