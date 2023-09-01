@@ -17,20 +17,19 @@ import com.example.mvi_architecture.uis.adapter.MainAdapter
 import com.example.mvi_architecture.uis.intent.DataIntent
 import com.example.mvi_architecture.uis.viewmodel.DataViewModel
 import com.example.mvi_architecture.uis.viewstate.DataState
-import com.example.mvi_architecture.R
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.flow.collect
+import com.example.mvi_architecture.databinding.ActivityMainBinding
 import kotlinx.coroutines.launch
 
-class
-MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
+    private lateinit var mainBinding: ActivityMainBinding
     private lateinit var dataViewModel: DataViewModel
-    private var adapter = MainAdapter(arrayListOf())
+    private var mainAdapter: MainAdapter = MainAdapter(arrayListOf())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        mainBinding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(mainBinding.root)
         setupUI()
         setupViewModel()
         observeViewModel()
@@ -38,7 +37,7 @@ MainActivity : AppCompatActivity() {
     }
 
     private fun setupClicks() {
-        buttonShowUsers.setOnClickListener {
+        mainBinding.buttonShowUsers.setOnClickListener {
             lifecycleScope.launch {
                 dataViewModel.dataIntent.send(DataIntent.FetchData)
             }
@@ -47,16 +46,16 @@ MainActivity : AppCompatActivity() {
 
 
     private fun setupUI() {
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.run {
+        mainBinding.recyclerView.layoutManager = LinearLayoutManager(this)
+        mainBinding.recyclerView.run {
             addItemDecoration(
                 DividerItemDecoration(
-                    recyclerView.context,
-                    (recyclerView.layoutManager as LinearLayoutManager).orientation
+                    mainBinding.recyclerView.context,
+                    (mainBinding.recyclerView.layoutManager as LinearLayoutManager).orientation
                 )
             )
+            adapter = mainAdapter
         }
-        recyclerView.adapter = adapter
     }
 
 
@@ -68,7 +67,7 @@ MainActivity : AppCompatActivity() {
                     RetrofitBuilder.apiService
                 )
             )
-        ).get(DataViewModel::class.java)
+        )[DataViewModel::class.java]
     }
 
     private fun observeViewModel() {
@@ -79,18 +78,18 @@ MainActivity : AppCompatActivity() {
                         Log.d("Inactive","Inactive State")
                     }
                     is DataState.Loading -> {
-                        buttonShowUsers.visibility = View.GONE
-                        progressBar.visibility = View.VISIBLE
+                        mainBinding.buttonShowUsers.visibility = View.GONE
+                        mainBinding.progressBar.visibility = View.VISIBLE
                     }
 
                     is DataState.ResponseData -> {
-                        progressBar.visibility = View.GONE
-                        buttonShowUsers.visibility = View.GONE
+                        mainBinding.progressBar.visibility = View.GONE
+                        mainBinding.buttonShowUsers.visibility = View.GONE
                         renderList(it.data.data)
                     }
                     is DataState.Error -> {
-                        progressBar.visibility = View.GONE
-                        buttonShowUsers.visibility = View.VISIBLE
+                        mainBinding.progressBar.visibility = View.GONE
+                        mainBinding.buttonShowUsers.visibility = View.VISIBLE
                         Toast.makeText(this@MainActivity, it.error, Toast.LENGTH_LONG).show()
                     }
                 }
@@ -99,8 +98,11 @@ MainActivity : AppCompatActivity() {
     }
 
     private fun renderList(users: List<User>) {
-        recyclerView.visibility = View.VISIBLE
-        users.let { listOfUsers -> listOfUsers.let { adapter.addData(it) } }
-        adapter.notifyDataSetChanged()
+        mainBinding.recyclerView.apply {
+            mainAdapter.addData(users)
+            visibility = View.VISIBLE
+            //users.let { listOfUsers -> listOfUsers.let { adapter.addData(it) } }
+            //adapter.notifyDataSetChanged()
+        }
     }
 }
