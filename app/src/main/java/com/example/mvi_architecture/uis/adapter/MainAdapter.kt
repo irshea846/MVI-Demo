@@ -7,8 +7,6 @@ import com.bumptech.glide.Glide
 import com.example.mvi_architecture.data.model.User
 import com.example.mvi_architecture.databinding.UserRowBinding
 
-//import kotlinx.android.synthetic.main.user_row.view.*
-
 class MainAdapter(
     private val users: ArrayList<User>
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
